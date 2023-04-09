@@ -93,9 +93,9 @@ Therefore, an architecture for more detailed semantic prediction is needed.
 We look forward to more efficient designs in the future. 
 
 ## 😄 Acknowledgement
-- [Segment Anything](https://segment-anything.com/) provides the SA-1B dataset
+- [Segment Anything](https://segment-anything.com/) provides the SA-1B dataset.
 - [HuggingFace](https://huggingface.co/) provides code and pre-trained models.
-- [CLIPSeg](https://arxiv.org/abs/2112.10003), [OneFormer](https://arxiv.org/abs/2211.06220), [BLIP](https://arxiv.org/abs/2201.12086) and [CLIP](https://arxiv.org/abs/2103.00020) provide powerful semantic segmentation, classification, and image caption models
+- [CLIPSeg](https://arxiv.org/abs/2112.10003), [OneFormer](https://arxiv.org/abs/2211.06220), [BLIP](https://arxiv.org/abs/2201.12086) and [CLIP](https://arxiv.org/abs/2103.00020) provide powerful semantic segmentation, image caption and classification models.
 
 ## 📜 Citation
 If you find this work useful for your research, please cite our github repo:
