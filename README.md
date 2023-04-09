@@ -24,7 +24,7 @@ We have developed an automated annotation engine that assigns fine-grained categ
 
 - **Step II**: Global Category Assignment: After obtaining all candidate vocabulary for an image, we utilize open-world and open-vocabulary segmentation methods such as CLIPSeg to assign categories to each region. This enables us to obtain category labels for each mask.
 ### 📖 News
-🔥 2023/04/09: The example of Semantic Segment Anything for SA-1B is released.
+🔥 2023/04/09: The example of Semantic Segment Anything for SA-1B is released.  
 🔥 2023/04/05: SA-1B is released.  
 
 ## Examples
