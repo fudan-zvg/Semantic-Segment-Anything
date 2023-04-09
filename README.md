@@ -59,7 +59,7 @@ Run our semantic annotation script with 8 GPUs:
 python scripts/stable_two_stage_multi_segmenter_clip_seg.py --data_dir=data/examples --out_dir=output --world_size=8 --save_img
 ```
 For each mask, we add a new field (e.g. 'class_name': 'face') as follows:
-```json
+```bash
 {
     'bbox': [81, 21, 434, 666],
     'area': 128047,
