@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./figures/SSA_title_00.png" alt="SSA Icon"/>
+  <img src="./figures/SSA_title.png" alt="SSA Icon"/>
 </p>
 
 ### [Official repo](https://github.com/fudan-zvg/Semantic-Segment-Anything)
@@ -7,29 +7,37 @@
 > Jiaqi Chen, Zeyu Yang, and Li Zhang  
 > Zhang Vision Group, Fudan Univerisity
 
-Our _**S**emantic **S**egment **A**nything (SSA)_ project enhances the [Segment Anything dataset(SA-1B)](https://segment-anything.com/) with a dense category annotation engine.
-The SSA annotation engine is completely automated, requiring no human annotators. It has the ability to annotate using an open vocabulary and can classify the basic categories of the COCO and ADE20K datasets. 
-This tool fills the gap in SA-1B's limited fine-grained semantic labeling, while also significantly reducing the need for manual annotation and associated costs. It has the potential to serve as a foundation for training large-scale visual perception models and more fine-grained CLIP models.
+_**S**emantic **S**egment **A**nything (SSA)_ project enhances the [Segment Anything dataset(SA-1B)](https://segment-anything.com/) with a dense category annotation engine.
+SSA is an automated annotation engine that serves as the initial semantic labeling for the SA-1B dataset. While human review and refinement may be required for more accurate labeling.
+Thanks to the combined architecture of close-set segmentation and open-vocabulary segmentation, SSA produces satisfactory labeling for most samples and has the capability to provide more detailed annotations using image caption method.
+This tool fills the gap in SA-1B's limited fine-grained semantic labeling, while also significantly reducing the need for manual annotation and associated costs. 
+It has the potential to serve as a foundation for training large-scale visual perception models and more fine-grained CLIP models.
 ### 🤔 Why do we need SSA?
-- Although SA-1B is a large image segmentation dataset with fine mask segmentation annotations, it lacks semantic annotations for training.
-- While advanced close-set segmenters such as Oneformer, open-set segmenters like CLIPSeg, and image caption methods like BLIP can provide rich semantic annotations, they often lack the ability to capture fine edges effectively liken SAM.
-- By combining the strengths of SA-1B's fine image segmentation annotations with the rich semantic annotations provided by these advanced models, we can provide more image segmentation dataset for dense category annotation.
+- SA-1B is the largest image segmentation dataset to date, providing fine mask segmentation annotations. However, it does not provide category annotations for each mask, which are essential for training a semantic segmentation model.
+- Advanced close-set segmenters like Oneformer, open-set segmenters like CLIPSeg, and image caption methods like BLIP can provide rich semantic annotations. However, their mask segmentation predictions may not be as comprehensive and accurate as the mask annotations in SA-1B.
+- Therefore, by combining the fine image segmentation annotations of SA-1B with the rich semantic annotations provided by these advanced models, we can provide a more densely categorized image segmentation dataset.
+### 👍 What SSA can do?
+- **SSA + SA-1B:** SSA provides open-vocabulary and dense mask-level category annotations. After manual review and refinement, these annotations can be used to train segmentation models or fine-grained CLIP models.
+- **SSA + SAM:** This combination can provide detailed segmentation masks and category labels for the new data, while keeping the manual labor costs relatively low.
 ### 🚄 Semantic segment anything engine
-The SSA engine consists of three stages:
-- **Step II: Close-set annotation.** We use a close-set semantic segmentation model trained on COCO and ADE20K datasets to segment the image and obtain rough category information. The predicted labels only include categories from COCO and ADE20K.
+![](./figures/SSA_model.png)
+The SSA engine consists of three components:
+- **(I) Close-set semantic segmentor (green).** Two close-set semantic segmentation models trained on COCO and ADE20K datasets respectively are used to segment the image and obtain rough category information. The predicted categories only include simple and basic categories to ensure that each mask receives a relevant label.
+- **(II) Open-vocabulary classifier (blue).** An image captioning model is utilized to describe the cropped image patch corresponding to each mask. Nouns or phrases are then extracted as candidate open-vocabulary categories. This process provides more diverse category labels.
+- **(III) Final decision module (orange).** The SSA engine uses a Class proposal filter (_i.e._ a CLIP) to filter out the top-_k_ most reasonable predictions from the mixed class list. Finally, the Open-vocabulary Segmentor predicts the most suitable category within the mask region based on the top-_k_ classes and image patch.
 
-- **Step II: Open-vocabulary annotation.** We utilize an image captioning model to describe each cropped local region of the image corresponding to each mask, obtaining open-vocabulary categories.
-
-- **Step III: Final decision.** We merge the close-set categories and open-vocabulary categories obtained in the previous two steps into a candidate category list. This list is then inputted, along with the cropped local image corresponding to each mask, into CLIPSeg. The model outputs the most likely category for each region.
 ### 📖 News
-🔥 2023/04/09: The example of Semantic Segment Anything for SA-1B is released.  
+🔥 2023/04/10: The example of Semantic Segment Anything for SA-1B is released.  
 🔥 2023/04/05: SA-1B is released.  
 
 ## Examples
-![](./figures/sa_225091_pred_top1.png)
-![](./figures/sa_225634_pred_top1.png)
-![](./figures/sa_229896_pred_top1.png)
-![](./figures/example.png)
+![](./figures/sa_225091_class_name.png)
+![](./figures/sa_225172_class_name.png)
+![](./figures/sa_230745_class_name.png)
+![](./figures/sa_227097_class_name.png)
+- Addition example for Open-vocabulary annotations
+
+![](./figures/SSA_open_vocab.png)
 
 ## 💻 Requirements
 - Python 3.7+
@@ -42,7 +50,7 @@ conda activate ssa
 python -m spacy download en_core_web_sm
 ```
 ## 🚀 Quick Start
-### 1. Download SA-1B
+### 1. Download SA-1B dataset
 Download the [SA-1B](https://segment-anything.com/) dataset and unzip it to the `data/sa_1b` folder.  
 
 **Folder sturcture:**
@@ -54,11 +62,11 @@ Download the [SA-1B](https://segment-anything.com/) dataset and unzip it to the 
 │   │   ├── sa_223775.json
 │   │   ├── ...
 ```
-Run our semantic annotation script with 8 GPUs:
+Run our Semantic annotation engine with 8 GPUs:
 ```bash
-python scripts/main.py --data_dir=data/examples --out_dir=output --world_size=8 --save_img
+python scripts/stable_two_stage_multi_segmenter_clip_seg.py --data_dir=data/examples --out_dir=output --world_size=8 --save_img
 ```
-For each mask, we add a new field (e.g. 'class_name': 'face') as follows:
+For each mask, we add two new fields (e.g. 'class_name': 'face' and 'class_proposals': ['face', 'person', 'sun glasses']). The class name is the most likely category for the mask, and the class proposals are the top-_k_ most likely categories from Class proposal filter. _k_ is set to 3 by default.
 ```bash
 {
     'bbox': [81, 21, 434, 666],
@@ -76,7 +84,15 @@ For each mask, we add a new field (e.g. 'class_name': 'face') as follows:
     'class_proposals': ['face', 'person', 'sun glasses']
 }
 ```
-## 👍 Acknowledgement
+## 📈 Future work
+We hope that excellent researchers in the community can come up with new improvements and ideas to do more work based on SSA. Some of our ideas are as follows:
+- (I) The masks in SA-1B are often in three levels: whole, part, and subpart, 
+and SSA often cannot provide accurate descriptions for too small part or subpart regions. Instead, we use broad categories. For example, SSA may predict "person" for body parts like neck or hand. 
+Therefore, an architecture for more detailed semantic prediction is needed.
+- (II) SSA is an ensemble of multiple models, which makes the inference speed slower compared to end-to-end models. 
+We look forward to more efficient designs in the future. 
+
+## 😄 Acknowledgement
 - [Segment Anything](https://segment-anything.com/) provides the SA-1B dataset
 - [HuggingFace](https://huggingface.co/) provides code and pre-trained models.
 - [CLIPSeg](https://arxiv.org/abs/2112.10003), [OneFormer](https://arxiv.org/abs/2211.06220), [BLIP](https://arxiv.org/abs/2201.12086) and [CLIP](https://arxiv.org/abs/2103.00020) provide powerful semantic segmentation, classification, and image caption models
