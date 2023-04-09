@@ -1,16 +1,14 @@
 <p align="center">
-  <img src="./figures/logo.png" alt="SSA-1B Icon"/>
+  <img src="./figures/SSA_title_00.png" alt="SSA-1B Icon"/>
 </p>
 
-<h1 align="center">Semantic Segment Anything (SSA)</h1>
-
-### [Github repo](https://github.com/fudan-zvg/Semantic-Segment-Anything)
+### [Official repo](https://github.com/fudan-zvg/Semantic-Segment-Anything)
 > **[Semantic Segment Anything](https://github.com/fudan-zvg/Semantic-Segment-Anything)**  
 > Jiaqi Chen, Zeyu Yang, Li Zhang  
 > Zhang Vision Group, Fudan Univerisity
 
 Our _**S**emantic **S**egment **A**nything (SSA)_ project enhances the [Segment Anything dataset(SA-1B)](https://segment-anything.com/) with a dense category annotation engine.
-The SSA annotation engine is completely automated, requiring no human annotators. It has the ability to annotate using an open vocabulary and can classify the basic categories of the COCO and ADE20k datasets. 
+The SSA annotation engine is completely automated, requiring no human annotators. It has the ability to annotate using an open vocabulary and can classify the basic categories of the COCO and ADE20K datasets. 
 This tool fills the gap in SA-1B's limited fine-grained semantic labeling, while also significantly reducing the need for manual annotation and associated costs. It has the potential to serve as a foundation for training large-scale visual perception models and fine-grained CLIP models.
 ### 🤔 Why do we need SSA?
 - Although SA-1B is a large image segmentation dataset with fine mask segmentation annotations, it lacks semantic annotations for training.
