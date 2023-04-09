@@ -100,9 +100,9 @@ We look forward to more efficient designs in the future.
 ## 📜 Citation
 If you find this work useful for your research, please cite our github repo:
 ```bibtex
-@misc{semantic2023,
+@misc{chen2023semantic,
     title = {Semantic Segment Anything},
-    author = {Jiaqi Chen and Zeyu Yang and Li Zhang},
+    author = {Chen, Jiaqi and Yang, Zeyu and Zhang, Li},
     howpublished = {\url{https://github.com/fudan-zvg/Semantic-Segment-Anything}},
     year = {2023}
 }
