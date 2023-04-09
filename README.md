@@ -56,7 +56,7 @@ Download the [SA-1B](https://segment-anything.com/) dataset and unzip it to the 
 ```
 Run our semantic annotation script with 8 GPUs:
 ```bash
-python scripts/stable_two_stage_multi_segmenter_clip_seg.py --data_dir=data/examples --out_dir=output --world_size=8 --save_img
+python scripts/main.py --data_dir=data/examples --out_dir=output --world_size=8 --save_img
 ```
 For each mask, we add a new field (e.g. 'class_name': 'face') as follows:
 ```bash
