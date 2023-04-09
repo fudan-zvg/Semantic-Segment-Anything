@@ -147,6 +147,7 @@ def semantic_annotation_pipeline(filename, data_path, output_path, rank, save_im
                     labels=np.arange(len(bitmasks)),
                     segms=np.stack(bitmasks),
                     class_names=class_names,
+                    font_size=25,
                     show=False,
                     out_file=os.path.join(output_path, filename+'_class_name.png'))
         print(os.path.join(output_path, filename+'_class_name.png'))
