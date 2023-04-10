@@ -17,8 +17,8 @@ It has the potential to serve as a foundation for training large-scale visual pe
 - Advanced close-set segmenters like Oneformer, open-set segmenters like CLIPSeg, and image caption methods like BLIP can provide rich semantic annotations. However, their mask segmentation predictions may not be as comprehensive and accurate as the mask annotations in SA-1B.
 - Therefore, by combining the fine image segmentation annotations of SA-1B with the rich semantic annotations provided by these advanced models, we can provide a more densely categorized image segmentation dataset.
 ### 👍 What SSA can do?
-- **SSA + SA-1B:** SSA provides open-vocabulary and dense mask-level category annotations. After manual review and refinement, these annotations can be used to train segmentation models or fine-grained CLIP models.
-- **SSA + SAM:** This combination can provide detailed segmentation masks and category labels for the new data, while keeping the manual labor costs relatively low.
+- **SSA + SA-1B:** SSA provides open-vocabulary and dense mask-level category annotations for large-scale SA-1B dataset. After manual review and refinement, these annotations can be used to train segmentation models or fine-grained CLIP models.
+- **SSA + SAM:** This combination can provide detailed segmentation masks and category labels for new data, while keeping manual labor costs relatively low. Users can first run SAM to obtain mask annotations, and then input the image and mask annotation files into SSA to obtain category labels.
 ### 🚄 Semantic segment anything engine
 ![](./figures/SSA_model.png)
 The SSA engine consists of three components:
