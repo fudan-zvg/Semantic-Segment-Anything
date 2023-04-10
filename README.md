@@ -12,6 +12,7 @@ SSA is an automated annotation engine that serves as the initial semantic labeli
 Thanks to the combined architecture of close-set segmentation and open-vocabulary segmentation, SSA produces satisfactory labeling for most samples and has the capability to provide more detailed annotations using image caption method.
 This tool fills the gap in SA-1B's limited fine-grained semantic labeling, while also significantly reducing the need for manual annotation and associated costs. 
 It has the potential to serve as a foundation for training large-scale visual perception models and more fine-grained CLIP models.
+![](./figures/SSA_motivation.png)
 ### 🤔 Why do we need SSA?
 - SA-1B is the largest image segmentation dataset to date, providing fine mask segmentation annotations. However, it does not provide category annotations for each mask, which are essential for training a semantic segmentation model.
 - Advanced close-set segmenters like Oneformer, open-set segmenters like CLIPSeg, and image caption methods like BLIP can provide rich semantic annotations. However, their mask segmentation predictions may not be as comprehensive and accurate as the mask annotations in SA-1B.
