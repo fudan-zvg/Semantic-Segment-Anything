@@ -7,7 +7,7 @@
 > Jiaqi Chen, Zeyu Yang, and Li Zhang  
 > Zhang Vision Group, Fudan Univerisity
 
-_**S**emantic **S**egment **A**nything (SSA)_ project enhances the [Segment Anything dataset(SA-1B)](https://segment-anything.com/) with a dense category annotation engine.
+_**S**emantic **S**egment **A**nything (SSA)_ project enhances the [Segment Anything dataset (SA-1B)](https://segment-anything.com/) with a dense category annotation engine.
 SSA is an automated annotation engine that serves as the initial semantic labeling for the SA-1B dataset. While human review and refinement may be required for more accurate labeling.
 Thanks to the combined architecture of close-set segmentation and open-vocabulary segmentation, SSA produces satisfactory labeling for most samples and has the capability to provide more detailed annotations using image caption method.
 This tool fills the gap in SA-1B's limited fine-grained semantic labeling, while also significantly reducing the need for manual annotation and associated costs. 
