@@ -27,7 +27,7 @@ The SSA engine consists of three components:
 - **(III) Final decision module (orange).** The SSA engine uses a Class proposal filter (_i.e._ a CLIP) to filter out the top-_k_ most reasonable predictions from the mixed class list. Finally, the Open-vocabulary Segmentor predicts the most suitable category within the mask region based on the top-_k_ classes and image patch.
 
 ### 📖 News
-🔥 2023/04/10: The example of Semantic Segment Anything for SA-1B is released.  
+🔥 2023/04/10: Semantic Segment Anything is released.  
 🔥 2023/04/05: SA-1B is released.  
 
 ## Examples
