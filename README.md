@@ -130,7 +130,7 @@ cd ..
 git clone git@github.com:facebookresearch/segment-anything.git
 cd segment-anything; pip install -e .; cd ../Semantic-Segment-Anything
 ```
-## 🚀 Quick Start
+## 🚀 Quick start
 ### 1. SSA
 #### 1.1 Preparation
 Dowload the ADE20K or Cityscapes dataset, and unzip them to the `data` folder.
