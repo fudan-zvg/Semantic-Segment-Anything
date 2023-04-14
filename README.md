@@ -54,6 +54,7 @@ The SSA-engine consists of three components:
 |:--------|:----------------------------|:-----------------------------|:----------------------------|
 | SA-1B   | Open-vocabulary             | 33.333                       | 0.334                       |
 | SA-1B   | Close set | 1.149                        | 0.012                       |
+
 This performance was tested on a single NVIDIA A6000 GPU.
 ### 2. Close-set semantic segmentation on ADE20K and Cityscapes dataset
 | Dataset    | Model | mIoU  |
