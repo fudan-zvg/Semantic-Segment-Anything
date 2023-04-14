@@ -79,3 +79,4 @@ dependencies:
     - wasabi==1.1.1
     - yapf==0.32.0
     - zipp==3.15.0
+    - mmsegmentation==0.26.0
