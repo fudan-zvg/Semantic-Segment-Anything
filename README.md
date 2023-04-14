@@ -14,7 +14,7 @@ SAM is a powerful model for arbitrary object segmentation, while SA-1B is the la
 
 ### Web demo and API
 
-- Try the Web Demo and API here: [![Replicate](https://replicate.com/deforum-art/deforum-stable-diffusion/badge)](https://replicate.com/deforum-art/deforum-stable-diffusion) 
+- Try the Web Demo and API here: [![Replicate](https://replicate.com/cjwbw/semantic-segment-anything/badge)](https://replicate.com/cjwbw/semantic-segment-anything) 
 
 
 ### 🤔 Why do we need SSA?
