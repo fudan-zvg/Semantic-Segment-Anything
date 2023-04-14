@@ -50,10 +50,10 @@ The SSA-engine consists of three components:
 🔥 2023/04/05: SAM and SA-1B are released.  
 ## Results
 ### 1. Inference time
-| Dataset | mode                        | Inference time per image (s) | Inference time per mask (s) |
-|:--------|:----------------------------|:-----------------------------|:----------------------------|
-| SA-1B   | Open-vocabulary             | 33.333                       | 0.334                       |
-| SA-1B   | Close set | 1.149                        | 0.012                       |
+| Dataset | model                        | Inference time per image (s) | Inference time per mask (s) |
+|:--------|:-----------------------------|:-----------------------------|:----------------------------|
+| SA-1B   | SSA (Close set)              | 1.149                        | 0.012                       |
+| SA-1B   | SSA-engine (Open-vocabulary) | 33.333                       | 0.334                       |
 
 This performance was tested on a single NVIDIA A6000 GPU.
 ### 2. Close-set semantic segmentation on ADE20K and Cityscapes dataset
@@ -72,42 +72,15 @@ This performance was tested on a single NVIDIA A6000 GPU.
 - Addition example for Open-vocabulary annotations
 
 ![](./figures/SSA_open_vocab.png)
-### Close-set semantic segmentation on ADE20K
-
-<div style="display: flex; justify-content: center;">
-  <div style="width: 50%;">
-    <img src="./figures/ADE_val_00001505_oneformer_ade20k_semantic.png" alt="Oneformer" style="width: 100%;">
-    <p style="text-align: center; margin-top: 0;">(a) Oneformer</p>
-  </div>
-  <div style="width: 50%;">
-    <img src="./figures/ADE_val_00001505_semantic.png" alt="SSA (Ours)" style="width: 100%;">
-    <p style="text-align: center; margin-top: 0;">(b) SSA (Ours)</p>
-  </div>
-</div>
 
 ### Close-set semantic segmentation on Cityscapes
-<div style="display: flex; justify-content: center;">
-  <div style="width: 50%;">
-    <img src="./figures/munster_000086_000019_leftImg8bit_oneformer_semantic.png" alt="Oneformer" style="width: 100%;">
-    <p style="text-align: center; margin-top: 0;">(a) Oneformer</p>
-  </div>
-  <div style="width: 50%;">
-    <img src="./figures/munster_000086_000019_leftImg8bit_semantic.png" alt="SSA (Ours)" style="width: 100%;">
-    <p style="text-align: center; margin-top: 0;">(b) SSA (Ours)</p>
-  </div>
-</div>
+![](./figures/SSA_vis_cityscapes.png)
+
+### Close-set semantic segmentation on ADE20K
+![](./figures/SSA_vis_ade20k.png)
 
 ### Close-set semantic segmentation on SA-1B
-<div style="display: flex; justify-content: center;">
-  <div style="width: 50%;">
-    <img src="./figures/sa_224027_oneformer_ade20k_category.png" alt="Oneformer" style="width: 100%;">
-    <p style="text-align: center; margin-top: 0;">(a) Oneformer</p>
-  </div>
-  <div style="width: 50%;">
-    <img src="./figures/sa_224027_semantic_class.png" alt="SSA (Ours)" style="width: 100%;">
-    <p style="text-align: center; margin-top: 0;">(b) SSA (Ours)</p>
-  </div>
-</div>
+![](./figures/SSA_vis_sa_1b.png)
 
 
 
@@ -130,7 +103,7 @@ cd ..
 git clone git@github.com:facebookresearch/segment-anything.git
 cd segment-anything; pip install -e .; cd ../Semantic-Segment-Anything
 ```
-## 🚀 Quick start
+## 🚀 Quick Start
 ### 1. SSA
 #### 1.1 Preparation
 Dowload the ADE20K or Cityscapes dataset, and unzip them to the `data` folder.
@@ -200,6 +173,7 @@ python evaluation.py --gt_path data/cityscapes/gtFine/val/ --result_path output_
 ### 2. SSA-engine
 Download the [SA-1B](https://segment-anything.com/) dataset and unzip it to the `data/sa_1b` folder.  
 Or you use your own dataset.
+
 **Folder sturcture:**
 ```none
 ├── Semantic-Segment-Anything
