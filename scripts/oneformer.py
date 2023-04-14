@@ -14,3 +14,10 @@ def oneformer_ade20k_segmentation(image, oneformer_ade20k_processor, oneformer_a
     predicted_semantic_map = oneformer_ade20k_processor.post_process_semantic_segmentation(
         outputs, target_sizes=[image.size[::-1]])[0]
     return predicted_semantic_map
+
+def oneformer_cityscapes_segmentation(image, oneformer_cityscapes_processor, oneformer_cityscapes_model, rank):
+    inputs = oneformer_cityscapes_processor(images=image, task_inputs=["semantic"], return_tensors="pt").to(rank)
+    outputs = oneformer_cityscapes_model(**inputs)
+    predicted_semantic_map = oneformer_cityscapes_processor.post_process_semantic_segmentation(
+        outputs, target_sizes=[image.size[::-1]])[0]
+    return predicted_semantic_map
