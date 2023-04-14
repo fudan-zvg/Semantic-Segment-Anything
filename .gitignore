@@ -110,4 +110,6 @@ output/
 .vscode
 .idea
 .DS_Store
-
+output*
+bkup/
+ckp/
