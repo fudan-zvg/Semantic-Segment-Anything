@@ -24,6 +24,27 @@ oneformer_func = {
     'cityscapes': oneformer_cityscapes_segmentation
 }
 
+def load_filename_with_extensions(data_path, filename):
+    """
+    Returns file with corresponding extension to json file.
+    Raise error if such file is not found.
+
+    Args:
+        filename (str): Filename (without extension).
+
+    Returns:
+        filename with the right extension.
+    """
+    full_file_path = os.path.join(data_path, filename)
+    # List of image file extensions to attempt
+    image_extensions = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff']
+    # Iterate through image file extensions and attempt to upload the file
+    for ext in image_extensions:
+        # Check if the file with current extension exists
+        if os.path.exists(full_file_path + ext):
+            return full_file_path + ext  # Return True if file is successfully uploaded
+    raise FileNotFoundError(f"No such file {full_file_path}, checked for the following extensions {image_extensions}")
+
 def semantic_annotation_pipeline(filename, data_path, output_path, rank, save_img=False, scale_small=1.2, scale_large=1.6, scale_huge=3.0,
                                  clip_processor=None,
                                  clip_model=None,
@@ -36,7 +57,7 @@ def semantic_annotation_pipeline(filename, data_path, output_path, rank, save_im
                                  clipseg_processor=None,
                                  clipseg_model=None,
                                  mask_generator=None):
-    img = mmcv.imread(os.path.join(data_path, filename+'.jpg'))
+    img = mmcv.imread(load_filename_with_extensions(data_path, filename))
     if mask_generator is None:
         anns = mmcv.load(os.path.join(data_path, filename+'.json'))
     else:
