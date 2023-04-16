@@ -59,7 +59,7 @@ def semantic_annotation_pipeline(filename, data_path, output_path, rank, save_im
                                  mask_generator=None):
     img = mmcv.imread(load_filename_with_extensions(data_path, filename))
     if mask_generator is None:
-        anns = mmcv.load(os.path.join(data_path, filename+'.json'))
+        anns = {'annotations':mmcv.load(os.path.join(data_path, filename+'.json'))}
     else:
         anns = {'annotations':mask_generator.generate(img)}
     bitmasks, class_names = [], []
