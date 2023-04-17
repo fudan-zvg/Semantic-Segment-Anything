@@ -79,6 +79,7 @@ def main(rank, args):
                                    mask_branch_model=mask_branch_model,
                                    dataset=args.dataset,
                                    id2label=id2label)
+        # torch.cuda.empty_cache()
     if args.eval and rank==0:
         assert args.gt_path is not None
         eval_pipeline(args.gt_path, args.out_dir, args.dataset)

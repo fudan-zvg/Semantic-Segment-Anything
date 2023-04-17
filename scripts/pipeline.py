@@ -157,7 +157,7 @@ def semantic_segment_anything_inference(filename, output_path, rank, img=None, s
 
     anns = {'annotations': mask_branch_model.generate(img)}
     h, w, _ = img.shape
-    bitmasks, class_names = [], []
+    class_names = []
     class_ids = oneformer_func[dataset](Image.fromarray(img), semantic_branch_processor,
                                                                     semantic_branch_model, rank)
 
@@ -173,7 +173,7 @@ def semantic_segment_anything_inference(filename, output_path, rank, img=None, s
             ann['class_name'] = id2label['id2label'][str(propose_classes_ids[0].item())]
             ann['class_proposals'] = id2label['id2label'][str(propose_classes_ids[0].item())]
             class_names.append(ann['class_name'])
-            bitmasks.append(maskUtils.decode(ann['segmentation']))
+            # bitmasks.append(maskUtils.decode(ann['segmentation']))
             continue
         top_1_propose_class_ids = torch.bincount(propose_classes_ids.flatten()).topk(1).indices
         top_1_propose_class_names = [id2label['id2label'][str(class_id.item())] for class_id in top_1_propose_class_ids]
@@ -182,7 +182,13 @@ def semantic_segment_anything_inference(filename, output_path, rank, img=None, s
         ann['class_name'] = top_1_propose_class_names[0]
         ann['class_proposals'] = top_1_propose_class_names[0]
         class_names.append(ann['class_name'])
-        bitmasks.append(maskUtils.decode(ann['segmentation']))
+        # bitmasks.append(maskUtils.decode(ann['segmentation']))
+
+        del valid_mask
+        del propose_classes_ids
+        del num_class_proposals
+        del top_1_propose_class_ids
+        del top_1_propose_class_names
     
     sematic_class_in_img = torch.unique(semantc_mask)
     semantic_bitmasks, semantic_class_names = [], []
@@ -209,7 +215,17 @@ def semantic_segment_anything_inference(filename, output_path, rank, img=None, s
                             out_file=os.path.join(output_path, filename + '_semantic.png'))
         print('[Save] save SSA prediction: ', os.path.join(output_path, filename + '_semantic.png'))
     mmcv.dump(anns, os.path.join(output_path, filename + '_semantic.json'))
-    
+    # 手动清理不再需要的变量
+    del img
+    del anns
+    del class_ids
+    del semantc_mask
+    # del bitmasks
+    del class_names
+    del semantic_bitmasks
+    del semantic_class_names
+
+    # gc.collect()
     
 def eval_pipeline(gt_path, res_path, dataset):
     logger = None
