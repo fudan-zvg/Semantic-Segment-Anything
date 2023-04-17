@@ -59,13 +59,12 @@ def semantic_annotation_pipeline(filename, data_path, output_path, rank, save_im
                                  mask_generator=None):
     img = mmcv.imread(load_filename_with_extensions(data_path, filename))
     if mask_generator is None:
-        anns = {'annotations':mmcv.load(os.path.join(data_path, filename+'.json'))}
+        anns = mmcv.load(os.path.join(data_path, filename+'.json'))
     else:
-        anns = {'annotations':mask_generator.generate(img)}
+        anns = {'annotations': mask_generator.generate(img)}
     bitmasks, class_names = [], []
     class_ids_from_oneformer_coco = oneformer_coco_segmentation(Image.fromarray(img),oneformer_coco_processor,oneformer_coco_model, rank)
     class_ids_from_oneformer_ade20k = oneformer_ade20k_segmentation(Image.fromarray(img),oneformer_ade20k_processor,oneformer_ade20k_model, rank)
-
     for ann in anns['annotations']:
         valid_mask = torch.tensor(maskUtils.decode(ann['segmentation'])).bool()
         # get the class ids of the valid pixels
@@ -92,7 +91,13 @@ def semantic_annotation_pipeline(filename, data_path, output_path, rank, save_im
         local_class_list = list(set.union(local_class_names, set(op_class_list))) # , set(refined_imagenet_class_names)
         mask_categories = clip_classification(patch_small, local_class_list, 3 if len(local_class_list)> 3 else len(local_class_list), clip_processor, clip_model, rank)
         class_ids_patch_huge = clipseg_segmentation(patch_huge, mask_categories, clipseg_processor, clipseg_model, rank).argmax(0)
-        top_1_patch_huge = torch.bincount(class_ids_patch_huge[torch.tensor(valid_mask_huge_crop)].flatten()).topk(1).indices
+        valid_mask_huge_crop = torch.tensor(valid_mask_huge_crop)
+        if valid_mask_huge_crop.shape != class_ids_patch_huge.shape or True:
+            valid_mask_huge_crop = F.interpolate(
+                valid_mask_huge_crop.unsqueeze(0).unsqueeze(0).float(),
+                size=(class_ids_patch_huge.shape[-2], class_ids_patch_huge.shape[-1]),
+                mode='nearest').squeeze(0).squeeze(0).bool()
+        top_1_patch_huge = torch.bincount(class_ids_patch_huge[valid_mask_huge_crop].flatten()).topk(1).indices
         top_1_mask_category = mask_categories[top_1_patch_huge.item()]
 
         ann['class_name'] = str(top_1_mask_category)
@@ -109,8 +114,8 @@ def semantic_annotation_pipeline(filename, data_path, output_path, rank, save_im
                     class_names=class_names,
                     font_size=25,
                     show=False,
-                    out_file=os.path.join(output_path, filename+'_class_name.png'))
-        print('[Save] save SSA-engine annotation results: ', os.path.join(output_path, filename+'_class_name.png'))
+                    out_file=os.path.join(output_path, filename+'_semantic.png'))
+        print('[Save] save SSA-engine annotation results: ', os.path.join(output_path, filename+'_semantic.png'))
 
 def img_load(data_path, filename, dataset):
     # load image
