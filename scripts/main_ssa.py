@@ -1,5 +1,6 @@
 import os
 import argparse
+import torch
 from PIL import Image
 from segment_anything import sam_model_registry, SamAutomaticMaskGenerator
 
@@ -18,7 +19,7 @@ os.environ['MASTER_PORT'] = '12322'
 def parse_args():
     parser = argparse.ArgumentParser(description='Semantically segment anything.')
     parser.add_argument('--data_dir', help='specify the root path of images and masks')
-    parser.add_argument('--ckpt_path', help='specify the root path of images and masks')
+    parser.add_argument('--ckpt_path', help='specify the root path of SAM checkpoint')
     parser.add_argument('--out_dir', help='the dir to save semantic annotations')
     parser.add_argument('--save_img', default=False, action='store_true', help='whether to save annotated images')
     parser.add_argument('--world_size', type=int, default=0, help='number of nodes')
@@ -71,13 +72,13 @@ def main(rank, args):
             id2label = CONFIG_CITYSCAPES_ID2LABEL
         else:
             raise NotImplementedError()
-
-        semantic_segment_anything_inference(file_name, args.out_dir, rank, img=img, save_img=args.save_img,
-                               semantic_branch_processor=semantic_branch_processor,
-                               semantic_branch_model=semantic_branch_model,
-                               mask_branch_model=mask_branch_model,
-                               dataset=args.dataset,
-                               id2label=id2label)
+        with torch.no_grad():
+            semantic_segment_anything_inference(file_name, args.out_dir, rank, img=img, save_img=args.save_img,
+                                   semantic_branch_processor=semantic_branch_processor,
+                                   semantic_branch_model=semantic_branch_model,
+                                   mask_branch_model=mask_branch_model,
+                                   dataset=args.dataset,
+                                   id2label=id2label)
     if args.eval and rank==0:
         assert args.gt_path is not None
         eval_pipeline(args.gt_path, args.out_dir, args.dataset)
