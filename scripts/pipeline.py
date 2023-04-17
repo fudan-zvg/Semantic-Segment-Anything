@@ -102,11 +102,27 @@ def semantic_annotation_pipeline(filename, data_path, output_path, rank, save_im
 
         ann['class_name'] = str(top_1_mask_category)
         ann['class_proposals'] = mask_categories
-        class_names.append(ann['class_name'])
-        bitmasks.append(maskUtils.decode(ann['segmentation']))
+        class_names.append(str(top_1_mask_category))
+        # bitmasks.append(maskUtils.decode(ann['segmentation']))
+
+        # Delete variables that are no longer needed
+        del coco_propose_classes_ids
+        del ade20k_propose_classes_ids
+        del top_k_coco_propose_classes_ids
+        del top_k_ade20k_propose_classes_ids
+        del patch_small
+        del patch_large
+        del patch_huge
+        del valid_mask_huge_crop
+        del op_class_list
+        del mask_categories
+        del class_ids_patch_huge
         
     mmcv.dump(anns, os.path.join(output_path, filename + '_semantic.json'))
+    print('[Save] save SSA-engine annotation results: ', os.path.join(output_path, filename + '_semantic.json'))
     if save_img:
+        for ann in anns['annotations']:
+            bitmasks.append(maskUtils.decode(ann['segmentation']))
         imshow_det_bboxes(img,
                     bboxes=None,
                     labels=np.arange(len(bitmasks)),
@@ -115,7 +131,12 @@ def semantic_annotation_pipeline(filename, data_path, output_path, rank, save_im
                     font_size=25,
                     show=False,
                     out_file=os.path.join(output_path, filename+'_semantic.png'))
-        print('[Save] save SSA-engine annotation results: ', os.path.join(output_path, filename+'_semantic.png'))
+
+    # Delete variables that are no longer needed
+    del img
+    del anns
+    del class_ids_from_oneformer_coco
+    del class_ids_from_oneformer_ade20k
 
 def img_load(data_path, filename, dataset):
     # load image
