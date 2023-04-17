@@ -54,4 +54,7 @@ if __name__ == '__main__':
     args = parse_args()
     if not os.path.exists(args.out_dir):
         os.mkdir(args.out_dir)
-    mp.spawn(main,args=(args,),nprocs=args.world_size,join=True)
+    if args.world_size > 1:
+        mp.spawn(main,args=(args,),nprocs=args.world_size,join=True)
+    else:
+        main(0, args)
