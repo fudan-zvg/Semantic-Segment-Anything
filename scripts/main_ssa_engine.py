@@ -49,12 +49,10 @@ def main(rank, args):
 
     if args.light_mode:
         blip_processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
-        blip_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base",
-                                                             torch_dtype=torch.float16).to(rank)
+        blip_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base").to(rank)
     else:
         blip_processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-large")
-        blip_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-large",
-                                                                  torch_dtype=torch.float16).to(rank)
+        blip_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-large").to(rank)
 
     if args.light_mode:
         clipseg_processor = AutoProcessor.from_pretrained("CIDAS/clipseg-rd16")
@@ -90,7 +88,7 @@ def main(rank, args):
                                         oneformer_coco_processor=oneformer_coco_processor, oneformer_coco_model=oneformer_coco_model,
                                         blip_processor=blip_processor, blip_model=blip_model,
                                         clipseg_processor=clipseg_processor, clipseg_model=clipseg_model, mask_generator=mask_generator)
-        torch.cuda.empty_cache()
+        # torch.cuda.empty_cache()
 if __name__ == '__main__':
     args = parse_args()
     if not os.path.exists(args.out_dir):
