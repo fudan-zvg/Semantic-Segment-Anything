@@ -23,12 +23,14 @@ SAM is a powerful model for arbitrary object segmentation, while SA-1B is the la
 - **SSA-engine:** SSA-engine provides dense open-vocabulary category annotations for large-scale SA-1B dataset. After manual review and refinement, these annotations can be used to train segmentation models or fine-grained CLIP models.
 ### ✈️ SSA: Semantic segment anything
 ![](./figures/SSA.png)
+Before the introduction of SAM, most of semantic segmentation application scenarios already had their own models. 
+Many of these models could provide rough category classifications for regions but were blurry and imprecise at the edges, lacking accurate masks. 
+To address this issue, SSA proposes using the original semantic segmentation models to provide categories while leveraging the powerful SAM to provide masks. 
+
 SSA is a semantic segmentation model based on SAM, and it is an open framework that allows users to integrate any advanced semantic segmentation models. The predicted mask boundaries by the segmentor do not need to be highly accurate, as the focus is on providing category predictions.
-Therefore, if you have trained an older model on your dataset, you do not need to discard it and retrain a new SAM-based model. Instead, you can continue to use the older model as the Semantic Branch. SAM's powerful generalization and image segmentation ability can provide a boost to the older model.
+Therefore, if you have trained an older model on your dataset, you do not need to discard it and retrain a new SAM-based model. Instead, you can continue to use the older model as the Semantic branch. SAM's powerful generalization and image segmentation ability can provide a boost to the older model.
 
-In addition, SSA is an out-of-the-box architecture that does not require additional fine-tuning of SAM's weights. It can perform inference directly and complete semantic segmentation tasks with ease.
-
-SSA consists of two branches, Mask Branch and Semantic Branch, as well as a voting module that determines the category for each mask.
+SSA consists of two branches, Mask branch and Semantic branch, as well as a voting module that determines the category for each mask.
 - **(I) Mask branch (blue).** SAM serves as the Mask branch and provides a set of masks with clear boundaries. 
 
 - **(II) Semantic branch (purple).** This branch provides the category for each pixel, which is implemented by a semantic segmentor that users can customize in terms of the segmentor's architecture and the interested categories. The segmentor does not need to have highly detailed boundaries, but it should classify each region as accurately as possible.
@@ -48,22 +50,60 @@ The SSA-engine consists of three components:
 - **(III) Final decision module (orange).** The SSA-engine uses a Class proposal filter (_i.e._ a CLIP) to filter out the top-_k_ most reasonable predictions from the mixed class list. Finally, the Open-vocabulary Segmentor predicts the most suitable category within the mask region based on the top-_k_ classes and image patch.
 
 ### 📖 News
-🔥 2023/4/14: SSA benchmarks semantic segmentation on ADE20K and Cityscapes.  
+🔥 2023/04/14: SSA benchmarks semantic segmentation on ADE20K and Cityscapes.  
 🔥 2023/04/10: Semantic Segment Anything (SSA and SSA-engine) is released.  
 🔥 2023/04/05: SAM and SA-1B are released.  
+
 ## Results
+All results were tested on a single NVIDIA A6000 GPU.
+
 ### 1. Inference time
 | Dataset | model                        | Inference time per image (s) | Inference time per mask (s) |
 |:--------|:-----------------------------|:-----------------------------|:----------------------------|
 | SA-1B   | SSA (Close set)              | 1.149                        | 0.012                       |
 | SA-1B   | SSA-engine (Open-vocabulary) | 33.333                       | 0.334                       |
 
-This performance was tested on a single NVIDIA A6000 GPU.
-### 2. Close-set semantic segmentation on ADE20K and Cityscapes dataset
-| Dataset    | Model | mIoU  |
-|:-----------|:------|:------|
-| ADE20K     | SSA   | 54.08 |
-| Cityscapes | SSA   | 79.94 |
+### 2. Memory usage
+#### SSA (with SAM)
+| Dataset    | model      | GPU Memory (MB)        |
+|:-----------|:-----------|:-----------------------|
+| ADE20K     | SSA        | 8798                   |
+| Cityscapes | SSA        | 19012                  |
+#### SSA-engine
+| Dataset    | model            | GPU Memory without SAM (MB) | GPU Memory with SAM (MB) |
+|:-----------|:-----------------|:----------------------------|:-------------------------|
+| SA-1B      | SSA-engine-small | 11914                       | 28024                    |
+| SA-1B      | SSA-engine-base  | 14466                       | 30576                    |
+
+### 3. Close-set semantic segmentation on ADE20K and Cityscapes dataset
+For the sake of convenience, we utilized different versions of Segformer from [Hugging Face](https://huggingface.co/nvidia), 
+which come with varying parameter sizes and accuracy levels (including B0, B2, and B5), 
+to **simulate** semantic branches with less accurate masks.
+The results show that when the accuracy of original Semantic branch is **NOT very high**, SSA can lead to an improvement in mIoU.
+
+#### ADE20K
+| Model | Semantic branch                                                                     | mIoU of Semantic branch | mIoU of SSA    |
+|:------|:------------------------------------------------------------------------------------|:------------------------|:----------------------|
+| SSA   | [Segformer-B0](https://huggingface.co/nvidia/segformer-b0-finetuned-ade-512-512)    | 31.78                   | 33.60                 |
+| SSA   | [Segformer-B2](https://huggingface.co/nvidia/segformer-b2-finetuned-ade-512-512)    | 41.38                   | 42.92                 |
+| SSA   | [Segformer-B5](https://huggingface.co/nvidia/segformer-b5-finetuned-ade-640-640)    | 45.92                   | 47.14                 |
+
+#### Cityscapes
+| Model | Semantic branch                                                                           | mIoU of Semantic branch | mIoU of SSA |
+|:------|:------------------------------------------------------------------------------------------|:------------------------|:-------------------|
+| SSA   | [Segformer-B0](https://huggingface.co/nvidia/segformer-b0-finetuned-cityscapes-1024-1024) | 52.52                   | 55.14              |
+| SSA   | [Segformer-B2](https://huggingface.co/nvidia/segformer-b2-finetuned-cityscapes-1024-1024)                                                                          | 59.76                   | 62.25              |
+| SSA   | [Segformer-B5](https://huggingface.co/nvidia/segformer-b5-finetuned-cityscapes-1024-1024) | 71.67                   | 72.99              |
+
+Note that all Segformer checkpoint and data pipeline are sourced from [Hugging Face](https://huggingface.co/nvidia) released by NVIDIA, which shows lower mIoU compared to those on [official repository](https://github.com/NVlabs/SegFormer).
+### 4. Cross-domain segmentation on Foggy Driving
+We also evaluate the performance of SSA on the Foggy Driving dataset, with OneFormer as Semantic branch. 
+The weight and data pipeline of OneFormer is sourced from [Hugging Face](https://huggingface.co/shi-labs/oneformer_cityscapes_swin_large).
+
+| Model   | Training dataset | validation dataset | mIoU |
+|:-------|:-----------------|:-------------------|:------|
+| SSA   | Cityscapes       | Foggy Driving      | 55.61 |
+
 
 ## Examples
 ### Open-vocabulary prediction on SA-1B
@@ -82,8 +122,8 @@ This performance was tested on a single NVIDIA A6000 GPU.
 ### Close-set semantic segmentation on ADE20K
 ![](./figures/SSA_vis_ade20k.png)
 
-### Close-set semantic segmentation on SA-1B
-![](./figures/SSA_vis_sa_1b.png)
+### Cross-domain segmentation on Foggy Driving
+![](./figures/SSA_vis_foggy_driving.png)
 
 
 
@@ -163,6 +203,10 @@ Run our SSA on Cityscapes with 8 GPUs:
 python scripts/main_ssa.py --ckpt_path ./ckp/sam_vit_h_4b8939.pth --save_img --world_size 8 --dataset cityscapes --data_dir data/cityscapes/leftImg8bit/val/ --gt_path data/cityscapes/gtFine/val/ --out_dir output_cityscapes
 ```
 
+Run our SSA on Foggy Driving with 8 GPUs:
+```bash
+python scripts/main_ssa.py --data_dir data/Foggy_Driving/leftImg8bit/test/ --ckpt_path ckp/sam_vit_h_4b8939.pth --out_dir output_foggy_driving --save_img --world_size 8 --dataset foggy_driving --eval --gt_path data/Foggy_Driving/gtFine/test/ --model oneformer
+```
 #### 1.3 SSA evaluation (after inference)
 Get the evaluate result of ADE20K:
 ```bash
@@ -173,7 +217,36 @@ Get the evaluate result of Cityscapes:
 ```bash
 python evaluation.py --gt_path data/cityscapes/gtFine/val/ --result_path output_cityscapes/ --dataset cityscapes
 ```
+
+Get the evaluate result of Foggy Driving:
+
+```bash
+# if you haven't downloaded the Foggy Driving dataset, you can run the following command to download it.
+wget -P data https://data.vision.ee.ethz.ch/csakarid/shared/SFSU_synthetic/Downloads/Foggy_Driving.zip & unizp data/Foggy_Driving.zip -d data/
+
+python evaluation.py --gt_path data/Foggy_Driving/gtFine/test/ --result_path output_foggy_driving/ --dataset foggy_driving
+```
 ### 2. SSA-engine
+#### Automatic annotation for your own dataset
+Organize your dataset as follows:
+```none
+├── Semantic-Segment-Anything
+├── data
+│   ├── <The name of your dataset>
+│   │   ├── img_name_1.jpg
+│   │   ├── img_name_2.jpg
+│   │   ├── ...
+```
+Run our SSA-engine-base with 8 GPUs (The GPU memory needed is dependent on the size of the input images):
+```bash
+python scripts/main_ssa_engine.py --data_dir=data/<The name of your dataset> --out_dir=output --world_size=8 --save_img --sam --ckpt_path=ckp/sam_vit_h_4b8939.pth
+```
+
+If you want to run the SSA-engine-small, you can use the following command  (add the `--light_mode` flag):
+```bash
+python scripts/main_ssa_engine.py --data_dir=data/<The name of your dataset> --out_dir=output --world_size=8 --save_img --sam --ckpt_path=ckp/sam_vit_h_4b8939.pth --light_mode
+```
+#### Automatic annotation for SA-1B
 Download the [SA-1B](https://segment-anything.com/) dataset and unzip it to the `data/sa_1b` folder.  
 Or you use your own dataset.
 
@@ -186,9 +259,13 @@ Or you use your own dataset.
 │   │   ├── sa_223775.json
 │   │   ├── ...
 ```
-Run our SSA-engine with 8 GPUs:
+Run our SSA-engine-base with 8 GPUs:
 ```bash
-python scripts/main_ssa_engine.py --data_dir=data/examples --out_dir=output --world_size=8 --save_img
+python scripts/main_ssa_engine.py --data_dir=data/sa_1b --out_dir=output --world_size=8 --save_img
+```
+Run the SSA-engine-small with 8 GPUs (add the `--light_mode` flag):
+```bash
+python scripts/main_ssa_engine.py --data_dir=data/sa_1b --out_dir=output --world_size=8 --save_img --light_mode
 ```
 For each mask, we add two new fields (e.g. 'class_name': 'face' and 'class_proposals': ['face', 'person', 'sun glasses']). The class name is the most likely category for the mask, and the class proposals are the top-_k_ most likely categories from Class proposal filter. _k_ is set to 3 by default.
 ```bash
@@ -211,15 +288,17 @@ For each mask, we add two new fields (e.g. 'class_name': 'face' and 'class_propo
 ## 📈 Future work
 We hope that excellent researchers in the community can come up with new improvements and ideas to do more work based on SSA. Some of our ideas are as follows:
 - (I) The masks in SA-1B are often in three levels: whole, part, and subpart, 
-and SSA often cannot provide accurate descriptions for too small part or subpart regions. Instead, we use broad categories. For example, SSA may predict "person" for body parts like neck or hand. 
+and SSA-engine often cannot provide accurate descriptions for too small part or subpart regions. Instead, we use broad categories. For example, SSA-engine may predict "person" for body parts like neck or hand. 
 Therefore, an architecture for more detailed semantic prediction is needed.
-- (II) SSA is an ensemble of multiple models, which makes the inference speed slower compared to end-to-end models. 
+- (II) SSA and SSA-engine is an ensemble of multiple models, which makes the inference speed slower compared to end-to-end models. 
 We look forward to more efficient designs in the future. 
-
+- (III) For semantic segmentation models with poor boundary segmentation, SSA can utilize SAM and the semantic voting mechanism to provide more accurate masks. 
+However, for models that already have excellent segmentation performance, SSA cannot bring about a significant improvement. On the other hand, if the original segmentation model is too poor and misses many semantic categories, SSA cannot help it recall those categories either. 
+Exploring better ways to utilize SAM is worth further investigation. 
 ## 😄 Acknowledgement
 - [Segment Anything](https://segment-anything.com/) provides the SA-1B dataset.
 - [HuggingFace](https://huggingface.co/) provides code and pre-trained models.
-- [CLIPSeg](https://arxiv.org/abs/2112.10003), [OneFormer](https://arxiv.org/abs/2211.06220), [BLIP](https://arxiv.org/abs/2201.12086) and [CLIP](https://arxiv.org/abs/2103.00020) provide powerful semantic segmentation, image caption and classification models.
+- [CLIPSeg](https://arxiv.org/abs/2112.10003), [Segformer](https://arxiv.org/abs/2105.15203), [OneFormer](https://arxiv.org/abs/2211.06220), [BLIP](https://arxiv.org/abs/2201.12086) and [CLIP](https://arxiv.org/abs/2103.00020) provide powerful semantic segmentation, image caption and classification models.
 
 ## 📜 Citation
 If you find this work useful for your research, please cite our github repo:
