@@ -20,7 +20,7 @@ def parse_args():
     parser.add_argument('--save_img', default=False, action='store_true', help='whether to save annotated images')
     parser.add_argument('--world_size', type=int, default=0, help='number of nodes')
     parser.add_argument('--sam', default=False, action='store_true', help='use SAM but not given annotation json, default is False')
-    parser.add_argument('--ckpt_path', help='specify the root path of SAM checkpoint')
+    parser.add_argument('--ckpt_path', default='ckp/sam_vit_h_4b8939.pth', help='specify the root path of SAM checkpoint')
     parser.add_argument('--light_mode', default=False, action='store_true', help='use light mode')
     args = parser.parse_args()
     return args
@@ -65,19 +65,34 @@ def main(rank, args):
     if args.sam:
         from segment_anything import sam_model_registry, SamAutomaticMaskGenerator
         sam = sam_model_registry["vit_h"](checkpoint=args.ckpt_path).to(rank)
-        mask_generator = SamAutomaticMaskGenerator(
-            model=sam,
-            points_per_side=32,
-            pred_iou_thresh=0.86,
-            stability_score_thresh=0.92,
-            crop_n_layers=0,  # 1 by default
-            crop_n_points_downscale_factor=2,
-            min_mask_region_area=100,  # Requires open-cv to run post-processing
-            output_mode='coco_rle',
-        )
+        if args.light_mode:
+            mask_generator = SamAutomaticMaskGenerator(
+                model=sam,
+                points_per_side=16,
+                pred_iou_thresh=0.86,
+                stability_score_thresh=0.92,
+                crop_n_layers=0,  # 1 by default
+                crop_n_points_downscale_factor=2,
+                min_mask_region_area=100,  # Requires open-cv to run post-processing
+                output_mode='coco_rle',
+            )
+        else:
+            mask_generator = SamAutomaticMaskGenerator(
+                model=sam,
+                points_per_side=32,
+                pred_iou_thresh=0.86,
+                stability_score_thresh=0.92,
+                crop_n_layers=0,  # 1 by default
+                crop_n_points_downscale_factor=2,
+                min_mask_region_area=100,  # Requires open-cv to run post-processing
+                output_mode='coco_rle',
+            )
+        image_extensions = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff']
+        filenames = [fn_.replace('.' + fn_.split('.')[-1], '') for fn_ in os.listdir(args.data_dir) if '.'+fn_.split('.')[-1] in image_extensions]
     else:
         mask_generator = None
-    filenames = [fn_[:-5] for fn_ in os.listdir(args.data_dir) if '.json' in fn_]
+        filenames = [fn_[:-5] for fn_ in os.listdir(args.data_dir) if '.json' in fn_]  # if sam is not used, the filenames are the same as the json files
+    print('Total number of files: ', len(filenames))
     local_filenames = filenames[(len(filenames) // args.world_size + 1) * rank : (len(filenames) // args.world_size + 1) * (rank + 1)]
 
     for file_name in local_filenames:

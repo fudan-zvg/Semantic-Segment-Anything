@@ -17,11 +17,13 @@ from clip import clip_classification
 from clipseg import clipseg_segmentation
 from oneformer import oneformer_coco_segmentation, oneformer_ade20k_segmentation, oneformer_cityscapes_segmentation
 from blip import open_vocabulary_classification_blip
+from segformer import segformer_segmentation as segformer_func
 
 oneformer_func = {
     'ade20k': oneformer_ade20k_segmentation,
     'coco': oneformer_coco_segmentation,
-    'cityscapes': oneformer_cityscapes_segmentation
+    'cityscapes': oneformer_cityscapes_segmentation,
+    'foggy_driving': oneformer_cityscapes_segmentation
 }
 
 def load_filename_with_extensions(data_path, filename):
@@ -92,7 +94,7 @@ def semantic_annotation_pipeline(filename, data_path, output_path, rank, save_im
         mask_categories = clip_classification(patch_small, local_class_list, 3 if len(local_class_list)> 3 else len(local_class_list), clip_processor, clip_model, rank)
         class_ids_patch_huge = clipseg_segmentation(patch_huge, mask_categories, clipseg_processor, clipseg_model, rank).argmax(0)
         valid_mask_huge_crop = torch.tensor(valid_mask_huge_crop)
-        if valid_mask_huge_crop.shape != class_ids_patch_huge.shape or True:
+        if valid_mask_huge_crop.shape != class_ids_patch_huge.shape:
             valid_mask_huge_crop = F.interpolate(
                 valid_mask_huge_crop.unsqueeze(0).unsqueeze(0).float(),
                 size=(class_ids_patch_huge.shape[-2], class_ids_patch_huge.shape[-1]),
@@ -142,7 +144,7 @@ def img_load(data_path, filename, dataset):
     # load image
     if dataset == 'ade20k':
         img = mmcv.imread(os.path.join(data_path, filename+'.jpg'))
-    elif dataset == 'cityscapes':
+    elif dataset == 'cityscapes' or dataset == 'foggy_driving':
         img = mmcv.imread(os.path.join(data_path, filename+'.png'))
     else:
         raise NotImplementedError()
@@ -153,14 +155,19 @@ def semantic_segment_anything_inference(filename, output_path, rank, img=None, s
                                  semantic_branch_model=None,
                                  mask_branch_model=None,
                                  dataset=None,
-                                 id2label=None):
+                                 id2label=None,
+                                 model='segformer'):
 
     anns = {'annotations': mask_branch_model.generate(img)}
     h, w, _ = img.shape
     class_names = []
-    class_ids = oneformer_func[dataset](Image.fromarray(img), semantic_branch_processor,
-                                                                    semantic_branch_model, rank)
-
+    if model == 'oneformer':
+        class_ids = oneformer_func[dataset](Image.fromarray(img), semantic_branch_processor,
+                                                                        semantic_branch_model, rank)
+    elif model == 'segformer':
+        class_ids = segformer_func(img, semantic_branch_processor, semantic_branch_model, rank)
+    else:
+        raise NotImplementedError()
     semantc_mask = class_ids.clone()
     anns['annotations'] = sorted(anns['annotations'], key=lambda x: x['area'], reverse=True)
     for ann in anns['annotations']:
@@ -229,7 +236,7 @@ def semantic_segment_anything_inference(filename, output_path, rank, img=None, s
     
 def eval_pipeline(gt_path, res_path, dataset):
     logger = None
-    if dataset == 'cityscapes':
+    if dataset == 'cityscapes' or dataset == 'foggy_driving':
         class_names = ('road', 'sidewalk', 'building', 'wall', 'fence', 'pole', 'traffic light', 'traffic sign', 'vegetation', 'terrain', 'sky', 'person', 'rider', 'car', 'truck', 'bus', 'train', 'motorcycle', 'bicycle')
     elif dataset == 'ade20k':
         class_names = ('wall', 'building', 'sky', 'floor', 'tree', 'ceiling', 'road', 'bed ', 'windowpane', 'grass', 'cabinet', 'sidewalk', 'person', 'earth', 'door', 'table', 'mountain', 'plant', 'curtain', 'chair', 'car', 'water', 'painting', 'sofa', 'shelf', 'house', 'sea', 'mirror', 'rug', 'field', 'armchair', 'seat', 'fence', 'desk', 'rock', 'wardrobe', 'lamp', 'bathtub', 'railing', 'cushion', 'base', 'box', 'column', 'signboard', 'chest of drawers', 'counter', 'sand', 'sink', 'skyscraper', 'fireplace', 'refrigerator', 'grandstand', 'path', 'stairs', 'runway', 'case', 'pool table', 'pillow', 'screen door', 'stairway', 'river', 'bridge', 'bookcase', 'blind', 'coffee table', 'toilet', 'flower', 'book', 'hill', 'bench', 'countertop', 'stove', 'palm', 'kitchen island', 'computer', 'swivel chair', 'boat', 'bar', 'arcade machine', 'hovel', 'bus', 'towel', 'light', 'truck', 'tower', 'chandelier', 'awning', 'streetlight', 'booth', 'television receiver', 'airplane', 'dirt track', 'apparel', 'pole', 'land', 'bannister', 'escalator', 'ottoman', 'bottle', 'buffet', 'poster', 'stage', 'van', 'ship', 'fountain', 'conveyer belt', 'canopy', 'washer', 'plaything', 'swimming pool', 'stool', 'barrel', 'basket', 'waterfall', 'tent', 'bag', 'minibike', 'cradle', 'oven', 'ball', 'food', 'step', 'tank', 'trade name', 'microwave', 'pot', 'animal', 'bicycle', 'lake', 'dishwasher', 'screen', 'blanket', 'sculpture', 'hood', 'sconce', 'vase', 'traffic light', 'tray', 'ashcan', 'fan', 'pier', 'crt screen', 'plate', 'monitor', 'bulletin board', 'shower', 'radiator', 'glass', 'clock', 'flag')
@@ -237,6 +244,8 @@ def eval_pipeline(gt_path, res_path, dataset):
     pre_eval_results = []
     if dataset == 'cityscapes':
         prefixs = ['frankfurt','lindau','munster']
+    elif dataset == 'foggy_driving':
+        prefixs = ['public', 'pedestrian']
     elif dataset == 'ade20k':
         prefixs = ['']
     else:
@@ -262,7 +271,7 @@ def eval_pipeline(gt_path, res_path, dataset):
             seg_logit.scatter_(1, seg_mask.long(), 1)
             seg_logit = seg_logit.float()
             seg_pred = F.softmax(seg_logit, dim=1).argmax(dim=1).squeeze(0).numpy()
-            if dataset == 'cityscapes':
+            if dataset == 'cityscapes' or dataset == 'foggy_driving':
                 gt_fn_ = os.path.join(gt_path_split, fn_.replace('_leftImg8bit_semantic.json','_gtFine_labelTrainIds.png'))
             elif dataset == 'ade20k':
                 gt_fn_ = os.path.join(gt_path, fn_.replace('_semantic.json','.png'))
