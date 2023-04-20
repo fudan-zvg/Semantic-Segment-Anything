@@ -92,7 +92,8 @@ def main(rank, args):
     else:
         mask_generator = None
         filenames = [fn_[:-5] for fn_ in os.listdir(args.data_dir) if '.json' in fn_]  # if sam is not used, the filenames are the same as the json files
-    print('Total number of files: ', len(filenames))
+    if rank==0:
+        print('Total number of files: ', len(filenames))
     local_filenames = filenames[(len(filenames) // args.world_size + 1) * rank : (len(filenames) // args.world_size + 1) * (rank + 1)]
 
     for file_name in local_filenames:
