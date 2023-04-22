@@ -207,12 +207,12 @@ python scripts/main_ssa.py --data_dir data/Foggy_Driving/leftImg8bit/test/ --ckp
 #### 1.3 SSA evaluation (after inference)
 Get the evaluate result of ADE20K:
 ```bash
-python evaluation.py --gt_path data/ade20k/ADEChallengeData2016/annotations/validation --result_path output_ade20k/ --dataset ade20k
+python scripts/evaluation.py --gt_path data/ade20k/ADEChallengeData2016/annotations/validation --result_path output_ade20k/ --dataset ade20k
 ```
 
 Get the evaluate result of Cityscapes:
 ```bash
-python evaluation.py --gt_path data/cityscapes/gtFine/val/ --result_path output_cityscapes/ --dataset cityscapes
+python scripts/evaluation.py --gt_path data/cityscapes/gtFine/val/ --result_path output_cityscapes/ --dataset cityscapes
 ```
 
 Get the evaluate result of Foggy Driving:
