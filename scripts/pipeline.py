@@ -47,7 +47,7 @@ def load_filename_with_extensions(data_path, filename):
             return full_file_path + ext  # Return True if file is successfully uploaded
     raise FileNotFoundError(f"No such file {full_file_path}, checked for the following extensions {image_extensions}")
 
-def semantic_annotation_pipeline(filename, data_path, output_path, rank, save_img=False, scale_small=1.2, scale_large=1.6, scale_huge=3.0,
+def semantic_annotation_pipeline(filename, data_path, output_path, rank, save_img=False, scale_small=1.2, scale_large=1.6, scale_huge=1.6,
                                  clip_processor=None,
                                  clip_model=None,
                                  oneformer_ade20k_processor=None,
@@ -85,10 +85,10 @@ def semantic_annotation_pipeline(filename, data_path, output_path, rank, save_im
                                   scale=scale_large)
         patch_huge = mmcv.imcrop(img, np.array(
             [ann['bbox'][0], ann['bbox'][1], ann['bbox'][0] + ann['bbox'][2], ann['bbox'][1] + ann['bbox'][3]]),
-                                  scale=scale_large)
+                                  scale=scale_huge)
         valid_mask_huge_crop = mmcv.imcrop(valid_mask.numpy(), np.array(
             [ann['bbox'][0], ann['bbox'][1], ann['bbox'][0] + ann['bbox'][2], ann['bbox'][1] + ann['bbox'][3]]),
-                                    scale=scale_large)
+                                    scale=scale_huge)
         op_class_list = open_vocabulary_classification_blip(patch_large,blip_processor, blip_model, rank)
         local_class_list = list(set.union(local_class_names, set(op_class_list))) # , set(refined_imagenet_class_names)
         mask_categories = clip_classification(patch_small, local_class_list, 3 if len(local_class_list)> 3 else len(local_class_list), clip_processor, clip_model, rank)
