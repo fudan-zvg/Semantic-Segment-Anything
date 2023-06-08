@@ -59,6 +59,8 @@ def semantic_annotation_pipeline(filename, data_path, output_path, rank, save_im
                                  clipseg_processor=None,
                                  clipseg_model=None,
                                  mask_generator=None):
+    if os.path.exists(os.path.join(output_path, filename + '_semantic.json')):
+        return
     img = mmcv.imread(load_filename_with_extensions(data_path, filename))
     if mask_generator is None:
         anns = mmcv.load(os.path.join(data_path, filename+'.json'))
