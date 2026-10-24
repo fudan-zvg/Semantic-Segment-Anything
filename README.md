@@ -2,8 +2,8 @@
   <img src="./figures/SSA_title.png" alt="SSA Icon"/>
 </p>
 
-### [Official repo](https://github.com/fudan-zvg/Semantic-Segment-Anything), [Web Demo](https://replicate.com/cjwbw/semantic-segment-anything)
-> **[Semantic Segment Anything](https://github.com/fudan-zvg/Semantic-Segment-Anything)**  
+### [Official repo](https://github.com/LogosIntelligenceLab/Semantic-Segment-Anything), [Web Demo](https://replicate.com/cjwbw/semantic-segment-anything)
+> **[Semantic Segment Anything](https://github.com/LogosIntelligenceLab/Semantic-Segment-Anything)**  
 > Jiaqi Chen, Zeyu Yang, and Li Zhang  
 > Zhang Vision Group, Fudan Univerisity
 
@@ -133,7 +133,7 @@ The weight and data pipeline of OneFormer is sourced from [Hugging Face](https:/
 
 ## 🛠️ Installation
 ```bash
-git clone git@github.com:fudan-zvg/Semantic-Segment-Anything.git
+git clone git@github.com:LogosIntelligenceLab/Semantic-Segment-Anything.git
 cd Semantic-Segment-Anything
 conda env create -f environment.yaml
 conda activate ssa
@@ -303,7 +303,7 @@ If you find this work useful for your research, please cite our github repo:
 @misc{chen2023semantic,
     title = {Semantic Segment Anything},
     author = {Chen, Jiaqi and Yang, Zeyu and Zhang, Li},
-    howpublished = {\url{https://github.com/fudan-zvg/Semantic-Segment-Anything}},
+    howpublished = {\url{https://github.com/LogosIntelligenceLab/Semantic-Segment-Anything}},
     year = {2023}
 }
 ```
